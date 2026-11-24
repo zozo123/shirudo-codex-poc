@@ -1,0 +1,11 @@
+/results*/
+__pycache__/
+.npmrc
+.env
+.env.*
+*.jsonl
+*.log
+*.upatch
+*.pem
+*.key
+registry-token
