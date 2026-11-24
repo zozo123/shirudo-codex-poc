@@ -1,12 +1,12 @@
 # Production release rehearsal for Codex
 
-Give coding agents a resettable dev environment that mimics production. They use familiar tools and APIs, mock services record what changes, and Linux hooks let the evaluator inject failures while a task is running. This POC uses real npm to demonstrate a mid-run change in registry access.
+Give coding agents a resettable dev environment that mimics production. In this demo, the Codex CLI ran locally. Real npm ran inside a nested Shirudo guest on Boat. Both runs targeted the same mock npm registry, which the operator reset between runs.
 
 [Run on Boat](#run-on-boat) · [Verified results](docs/results.md)
 
 ## How the rehearsal works
 
-- **Real tools and API calls.** Codex drives the npm CLI on Boat. npm sends its normal HTTP requests to a disposable stand-in for an npm registry such as Artifactory.
+- **Real tools and API calls.** The local Codex CLI drives npm through MCP. npm sends its normal HTTP requests to a disposable stand-in for an npm registry such as Artifactory.
 - **A mock that records changes.** The registry stores the published version and tarball, serves the tarball back to npm, and counts publishes and downloads. The evaluator reads that state independently.
 - **Failure injected mid-run.** OpenAI and Cisco built Shirudo to protect running Linux systems. The lab repurposes it to load a signed eBPF rule at Linux's connection hook. After `npm ping` succeeds, the operator revokes access and the next connection gets `EACCES` before npm sends the publish request. [Shirudo announcement](https://openai.com/index/introducing-shirudo/)
 
@@ -24,9 +24,9 @@ Both runs passed on a fresh Boat sandbox. A signed rollback restored `npm ping`.
 Era by Eon simulates companies. Apply that idea to development by giving agents resettable versions of dependencies such as CI runners, databases, and external APIs. [Era by Eon](https://www.eon.io/blog/era-build-and-test-ai-agents)
 
 - **Software engineering.** Exercise real tools against production-like dependencies and check the effects before giving agents production access.
-- **Software factories.** Generate fresh environments, replay workflows with different failures, and compare how agents handle them.
+- **Software factories.** A factory could generate fresh environments, replay workflows with different failures, and compare how agents handle them.
 - **Evals.** Score actions and outcomes from the tool trace and independently read service state. Here the rubric rewards completing the release when allowed and stopping without a write after revocation.
-- **RL and post-training.** Use the scores as rewards for RL or to select traces for post-training. Reset the environment before each episode and vary the conditions across runs.
+- **RL and post-training.** A future training pipeline could use the scores as RL rewards or to select traces for post-training. Resetting the environment between episodes lets it vary the conditions across runs.
 
 ## Run on Boat
 
