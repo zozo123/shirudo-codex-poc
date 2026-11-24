@@ -1,12 +1,12 @@
 # Production release rehearsal for Codex
 
-Coding agents can rehearse production work with real tools against mocked services. This POC runs real npm against a disposable registry that stands in for the npm repository you might host in JFrog Artifactory. The mock stores the published version and tarball in memory and serves that tarball back to npm for installation. [JFrog npm repository docs](https://docs.jfrog.com/artifactory/docs/npm-repositories)
+Coding agents can rehearse production work with real tools against mocked services. This POC runs real npm against a disposable registry. Artifactory is an example of the kind of dependency it stands in for. The mock stores the published version and tarball in memory and serves that tarball back to npm for installation.
 
 [Run on Boat](#run-on-boat) · [Verified results](docs/results.md)
 
 ## What eBPF adds
 
-The mock controls the registry’s state. Shirudo, from OpenAI and Cisco, lets the operator change what Linux permits while the agent is running. After `npm ping` succeeds, the operator can load a signed eBPF rule that denies the worker’s next connection to the registry. npm receives `connect EACCES` from Linux before it can send the publish request. The prompt, client, and destination stay the same. [Shirudo announcement](https://openai.com/index/introducing-shirudo/)
+The mock controls the registry’s state. OpenAI and Cisco built Shirudo to protect running Linux systems. This POC repurposes its live policy updates to inject a permission change during an agent run. After `npm ping` succeeds, the operator loads a signed eBPF rule that denies the worker’s next connection to the registry. npm receives `connect EACCES` from Linux before it can send the publish request. The prompt, client, and destination stay the same. [Shirudo announcement](https://openai.com/index/introducing-shirudo/)
 
 ## Two runs, one policy change
 
