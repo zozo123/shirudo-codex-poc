@@ -10,8 +10,6 @@ Give coding agents a resettable dev environment that mimics production. They use
 - **A mock that records changes.** The registry stores the published version and tarball, serves the tarball back to npm, and counts publishes and downloads. The evaluator reads that state independently.
 - **Failure injected mid-run.** OpenAI and Cisco built Shirudo to protect running Linux systems. The lab repurposes it to load a signed eBPF rule at Linux's connection hook. After `npm ping` succeeds, the operator revokes access and the next connection gets `EACCES` before npm sends the publish request. [Shirudo announcement](https://openai.com/index/introducing-shirudo/)
 
-Era by Eon simulates companies. Apply the same idea to developer dependencies like CI runners, databases, and external APIs. Reset the services, replay the task under different conditions, and score the tool trace and service state. [Era by Eon](https://www.eon.io/blog/era-build-and-test-ai-agents)
-
 ## Two runs, one policy change
 
 | Run | What Codex did | Independent registry state | Score |
@@ -20,6 +18,15 @@ Era by Eon simulates companies. Apply the same idea to developer dependencies li
 | Revoked after preflight | Stopped the release after Linux denied the connection on its first publish attempt. | Zero versions, publishes, or downloads. | 1/1 |
 
 Both runs passed on a fresh Boat sandbox. A signed rollback restored `npm ping`. [Run evidence](docs/results.md)
+
+## Why use a dev gym
+
+Era by Eon simulates companies. Apply that idea to development by giving agents resettable versions of dependencies such as CI runners, databases, and external APIs. [Era by Eon](https://www.eon.io/blog/era-build-and-test-ai-agents)
+
+- **Software engineering.** Exercise real tools against production-like dependencies and check the effects before giving agents production access.
+- **Software factories.** Generate fresh environments, replay workflows with different failures, and compare how agents handle them.
+- **Evals.** Score actions and outcomes from the tool trace and independently read service state. Here the rubric rewards completing the release when allowed and stopping without a write after revocation.
+- **RL and post-training.** Use the scores as rewards for RL or to select traces for post-training. Reset the environment before each episode and vary the conditions across runs.
 
 ## Run on Boat
 
