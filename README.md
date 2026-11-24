@@ -1,16 +1,20 @@
-# Production release rehearsal for Codex
+# eBPF instrumentation for coding agents
 
-Put a controlled layer between the agent's tools and production dependencies. Real calls land in disposable mock services, eBPF controls access mid-run, and production stays untouched.
-
-In this demo, the Codex CLI ran locally and real npm ran inside a nested Shirudo guest on Boat. Both runs targeted the same mock npm registry, which the operator reset between runs.
+Use eBPF to instrument the environment around a coding agent. On an isolated Linux host, hooks can observe, block, or steer new connections while the agent keeps using familiar tools and APIs. That lets an evaluator change conditions mid-task and keep the effects in the lab. [Example of eBPF connection steering](https://docs.cilium.io/en/stable/network/kubernetes/kubeproxy-free/#socket-loadbalancer-bypass-in-pod-namespace)
 
 [Run on Boat](#run-on-boat) · [Verified results](docs/results.md)
 
-## How the rehearsal works
+## The vision
+
+Era by Eon simulates companies. A software factory could apply that idea to production workflows from build to deploy. A test gateway could send payment calls to Stripe's sandbox using test keys and database traffic to an isolated RDS clone with scrubbed data. Agents could exercise real workflows and failure cases while production stays untouched. [Era by Eon](https://www.eon.io/blog/era-build-and-test-ai-agents) · [Stripe testing](https://docs.stripe.com/testing) · [RDS snapshot restore](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_RestoreFromSnapshot.html)
+
+## npm supply-chain demo on Boat
+
+The Codex CLI ran locally and drove real npm inside a nested Shirudo guest on Boat. Both runs targeted the same disposable mock registry, which the operator reset between runs.
 
 - **Real calls land in the mock.** Codex drives npm through MCP. The lab sets npm's `--registry` to the mock's loopback endpoint, where npm sends its normal HTTP requests. The mock stands in for an npm repository such as one hosted in Artifactory.
 - **A mock that records changes.** The registry stores the published version and tarball, serves the tarball back to npm, and counts publishes and downloads. The evaluator reads that state independently.
-- **eBPF controls access mid-run.** OpenAI and Cisco built Shirudo to protect running Linux systems. The lab repurposes it to load a signed eBPF rule at Linux's connect hook. After `npm ping` succeeds, the operator revokes access. Linux returns `EACCES` on the next connection before npm sends the publish request. [Shirudo announcement](https://openai.com/index/introducing-shirudo/)
+- **eBPF controls access mid-run.** OpenAI and Cisco built Shirudo to protect running Linux systems. The lab repurposes it to load a signed eBPF rule at Linux's connect hook. After `npm ping` succeeds in the revoked run, the operator revokes access. Linux returns `EACCES` on the next connection before npm sends the publish request. [Shirudo announcement](https://openai.com/index/introducing-shirudo/)
 
 ## Two runs, one policy change
 
@@ -22,8 +26,6 @@ In this demo, the Codex CLI ran locally and real npm ran inside a nested Shirudo
 Both runs passed on a fresh Boat sandbox. A signed rollback restored `npm ping`. [Run evidence](docs/results.md)
 
 ## Why use a dev gym
-
-Era by Eon simulates companies. Apply that idea to development by giving agents resettable versions of dependencies such as CI runners, databases, and external APIs. [Era by Eon](https://www.eon.io/blog/era-build-and-test-ai-agents)
 
 - **Software engineering.** Exercise real tools against production-like dependencies and check the effects before giving agents production access.
 - **Software factories.** A factory could generate fresh environments, replay workflows with different failures, and compare how agents handle them.
