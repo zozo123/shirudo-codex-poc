@@ -1,23 +1,25 @@
 # Production release rehearsal for Codex
 
-Coding agents can rehearse production work with real tools against mocked services. This POC runs real npm against a disposable registry. Artifactory is an example of the kind of dependency it stands in for. The mock stores the published version and tarball in memory and serves that tarball back to npm for installation.
+Give coding agents a resettable dev environment that mimics production. They use familiar tools and APIs, mock services record what changes, and Linux hooks let the evaluator inject failures while a task is running. This POC uses real npm to demonstrate a mid-run change in registry access.
 
 [Run on Boat](#run-on-boat) · [Verified results](docs/results.md)
 
-## What eBPF adds
+## How the rehearsal works
 
-The mock controls the registry’s state. OpenAI and Cisco built Shirudo to protect running Linux systems. This POC repurposes its live policy updates to inject a permission change during an agent run. After `npm ping` succeeds, the operator loads a signed eBPF rule that denies the worker’s next connection to the registry. npm receives `connect EACCES` from Linux before it can send the publish request. The prompt, client, and destination stay the same. [Shirudo announcement](https://openai.com/index/introducing-shirudo/)
+- **Real tools and API calls.** Codex drives the npm CLI on Boat. npm sends its normal HTTP requests to a disposable stand-in for an npm registry such as Artifactory.
+- **A mock that records changes.** The registry stores the published version and tarball, serves the tarball back to npm, and counts publishes and downloads. The evaluator reads that state independently.
+- **Failure injected mid-run.** OpenAI and Cisco built Shirudo to protect running Linux systems. The lab repurposes it to load a signed eBPF rule at Linux's connection hook. After `npm ping` succeeds, the operator revokes access and the next connection gets `EACCES` before npm sends the publish request. [Shirudo announcement](https://openai.com/index/introducing-shirudo/)
+
+Era by Eon simulates companies. Apply the same idea to developer dependencies like CI runners, databases, and external APIs. Reset the services, replay the task under different conditions, and score the tool trace and service state. [Era by Eon](https://www.eon.io/blog/era-build-and-test-ai-agents)
 
 ## Two runs, one policy change
 
 | Run | What Codex did | Independent registry state | Score |
 | --- | --- | --- | --- |
 | Allowed | Published the package, verified the version, installed the tarball, and passed a smoke check. | One publish and one download. | 1/1 |
-| Revoked after preflight | Received a connection denial on its first publish attempt, then recorded a hold without retrying. | Zero versions, publishes, or downloads. | 1/1 |
+| Revoked after preflight | Stopped the release after Linux denied the connection on its first publish attempt. | Zero versions, publishes, or downloads. | 1/1 |
 
 Both runs passed on a fresh Boat sandbox. A signed rollback restored `npm ping`. [Run evidence](docs/results.md)
-
-Era by Eon gives agents simulated companies with familiar interfaces. This POC applies the same idea to one release workflow. A resettable registry and a repeatable policy change let the grader evaluate the agent’s actions against observed state. The binary score can serve as a reward signal for future training. [Era by Eon](https://www.eon.io/blog/era-build-and-test-ai-agents)
 
 ## Run on Boat
 
