@@ -1,14 +1,16 @@
 # Production release rehearsal for Codex
 
-Give coding agents a resettable dev environment that mimics production. In this demo, the Codex CLI ran locally. Real npm ran inside a nested Shirudo guest on Boat. Both runs targeted the same mock npm registry, which the operator reset between runs.
+Put a controlled layer between the agent's tools and production dependencies. Real calls land in disposable mock services, eBPF controls access mid-run, and production stays untouched.
+
+In this demo, the Codex CLI ran locally and real npm ran inside a nested Shirudo guest on Boat. Both runs targeted the same mock npm registry, which the operator reset between runs.
 
 [Run on Boat](#run-on-boat) · [Verified results](docs/results.md)
 
 ## How the rehearsal works
 
-- **Real tools and API calls.** The local Codex CLI drives npm through MCP. npm sends its normal HTTP requests to a disposable stand-in for an npm registry such as Artifactory.
+- **Real calls land in the mock.** Codex drives npm through MCP. The lab sets npm's `--registry` to the mock's loopback endpoint, where npm sends its normal HTTP requests. The mock stands in for an npm repository such as one hosted in Artifactory.
 - **A mock that records changes.** The registry stores the published version and tarball, serves the tarball back to npm, and counts publishes and downloads. The evaluator reads that state independently.
-- **Failure injected mid-run.** OpenAI and Cisco built Shirudo to protect running Linux systems. The lab repurposes it to load a signed eBPF rule at Linux's connection hook. After `npm ping` succeeds, the operator revokes access and the next connection gets `EACCES` before npm sends the publish request. [Shirudo announcement](https://openai.com/index/introducing-shirudo/)
+- **eBPF controls access mid-run.** OpenAI and Cisco built Shirudo to protect running Linux systems. The lab repurposes it to load a signed eBPF rule at Linux's connect hook. After `npm ping` succeeds, the operator revokes access. Linux returns `EACCES` on the next connection before npm sends the publish request. [Shirudo announcement](https://openai.com/index/introducing-shirudo/)
 
 ## Two runs, one policy change
 
