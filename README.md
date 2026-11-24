@@ -52,7 +52,7 @@ bash boat-copy.sh "$VM" setup-boat.sh /home/user/setup-shirudo-codex-poc.sh
 boat exec "$VM" --timeout 0 -- bash /home/user/setup-shirudo-codex-poc.sh
 ```
 
-Wait for setup to finish. It builds the pinned Shirudo checkout and boots the nested guest. The command can take several minutes. The one-hour Boat TTL includes both setup and the episodes. Boat stops the sandbox at the end of its lifetime and discards it with `--no-snapshots`.
+Wait for setup to finish. It builds the pinned Shirudo checkout and boots the nested guest. The verified cold run took about 16 minutes including both episodes. The one-hour Boat TTL includes setup. Boat stops the sandbox at the end of its lifetime and discards it with `--no-snapshots`.
 
 ### 3. Prepare the registry and policy
 
@@ -107,9 +107,9 @@ boat exec "$VM" --stream --timeout 120 -- bash -lc \
 boat stop "$VM"
 ```
 
-## What the first run showed
+## Verified on a fresh Boat sandbox
 
-The allowed episode published and installed the fixture and scored 1/1. The revoked episode showed the signed policy load, Linux denying the registry connection, and Codex recording a hold without a retry. That Boat sandbox stopped before the independent post-denial state read. See [the observed results](docs/results.md).
+Both episodes scored 1/1 in a fresh run. The allowed episode published once and downloaded the tarball for installation. After revocation, Linux denied the connection, Codex recorded a hold without retrying, and the independent state read showed zero versions, publishes, or downloads. A signed rollback restored `npm ping`. See [the observed results](docs/results.md).
 
 ## Source map
 
